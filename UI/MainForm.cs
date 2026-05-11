@@ -75,7 +75,7 @@ public sealed class MainForm : Form
             Padding = new Padding(22, 14, 22, 16),
             BackColor = PageBack
         };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 66));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 74));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));
@@ -93,8 +93,8 @@ public sealed class MainForm : Form
             ColumnCount = 1,
             Margin = Padding.Empty
         };
-        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
         var title = new Label
         {
             Text = "Conversor XML NF-e para DANFE PDF",
@@ -117,7 +117,8 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             Font = new Font("Comic Sans MS", 10F, FontStyle.Bold),
             ForeColor = Color.Blue,
-            TextAlign = ContentAlignment.MiddleRight
+            TextAlign = ContentAlignment.TopRight,
+            Padding = new Padding(0, 10, 4, 0)
         };
         titlePanel.Controls.Add(title, 0, 0);
         titlePanel.Controls.Add(versionBadge, 0, 1);
