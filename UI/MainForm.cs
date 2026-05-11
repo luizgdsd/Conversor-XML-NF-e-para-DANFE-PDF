@@ -49,7 +49,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = $"Conversor XML NF-e para DANFE PDF v{AppVersionText}";
+        Text = "Conversor XML NF-e para DANFE PDF";
         MinimumSize = new Size(940, 620);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 9F);
@@ -75,17 +75,17 @@ public sealed class MainForm : Form
             Padding = new Padding(22, 18, 22, 16),
             BackColor = PageBack
         };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 56));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 86));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 76));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
         Controls.Add(root);
 
         var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = Padding.Empty };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 430));
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 470));
         var title = new Label
         {
             Text = "Conversor XML NF-e para DANFE PDF",
@@ -113,9 +113,9 @@ public sealed class MainForm : Form
         };
         var version = new Label
         {
-            Text = $"v{AppVersionText}",
+            Text = $"Versao {AppVersionText}",
             Dock = DockStyle.Fill,
-            Font = new Font("Segoe UI", 8F),
+            Font = new Font("Segoe UI", 8F, FontStyle.Regular),
             ForeColor = Muted,
             TextAlign = ContentAlignment.MiddleRight
         };
@@ -132,11 +132,11 @@ public sealed class MainForm : Form
         _dropHintLabel.ForeColor = Primary;
         _dropHintLabel.BackColor = PanelBack;
         _dropHintLabel.BorderStyle = BorderStyle.FixedSingle;
-        _dropHintLabel.Margin = new Padding(0, 0, 0, 12);
+        _dropHintLabel.Margin = new Padding(0, 0, 0, 10);
         _dropHintLabel.AllowDrop = true;
         root.Controls.Add(_dropHintLabel, 0, 1);
 
-        var outputPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
+        var outputPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = new Padding(0, 2, 0, 2) };
         outputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
         outputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         outputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128));
@@ -155,50 +155,59 @@ public sealed class MainForm : Form
         outputPanel.Controls.Add(_outputButton, 2, 0);
         root.Controls.Add(outputPanel, 0, 2);
 
-        var actions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 7, Margin = Padding.Empty };
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118));
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 220));
+        var actions = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 5,
+            RowCount = 2,
+            Margin = new Padding(0, 4, 0, 2)
+        };
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
+        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128));
+        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240));
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
         actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        actions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 220));
+        actions.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+        actions.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
         ConfigureButton(_loadXmlButton, "Carregar arquivos");
         ConfigureButton(_clearButton, "Limpar lista");
         _overwriteCheck.Text = "Sobrescrever PDFs";
         _overwriteCheck.AutoSize = true;
-        _overwriteCheck.Dock = DockStyle.Fill;
+        _overwriteCheck.Dock = DockStyle.Left;
+        _overwriteCheck.Margin = new Padding(10, 10, 0, 6);
         _overwriteCheck.ForeColor = Color.FromArgb(30, 41, 59);
         _unifiedPdfCheck.Text = "Gerar PDF unico";
         _unifiedPdfCheck.AutoSize = true;
-        _unifiedPdfCheck.Dock = DockStyle.Fill;
+        _unifiedPdfCheck.Dock = DockStyle.Left;
+        _unifiedPdfCheck.Margin = new Padding(4, 10, 0, 6);
         _unifiedPdfCheck.ForeColor = Color.FromArgb(30, 41, 59);
         _existingActionCombo.DropDownStyle = ComboBoxStyle.DropDownList;
         _existingActionCombo.Dock = DockStyle.Fill;
-        _existingActionCombo.Margin = new Padding(6, 9, 12, 9);
+        _existingActionCombo.Margin = new Padding(4, 7, 10, 7);
         _existingActionCombo.Items.AddRange(["Gerar com sufixo incremental", "Ignorar PDF existente", "Sobrescrever PDF existente"]);
         _existingActionCombo.SelectedIndex = 0;
         ConfigureButton(_convertButton, "Converter XMLs");
         _convertButton.BackColor = Primary;
         _convertButton.ForeColor = Color.White;
         _progressBar.Dock = DockStyle.Fill;
-        _progressBar.Margin = new Padding(12, 15, 0, 15);
+        _progressBar.Margin = new Padding(4, 13, 0, 13);
         actions.Controls.Add(_loadXmlButton, 0, 0);
         actions.Controls.Add(_clearButton, 1, 0);
         actions.Controls.Add(_existingActionCombo, 2, 0);
         actions.Controls.Add(_convertButton, 3, 0);
-        actions.Controls.Add(_unifiedPdfCheck, 4, 0);
-        actions.Controls.Add(_overwriteCheck, 5, 0);
-        actions.Controls.Add(_progressBar, 6, 0);
+        actions.Controls.Add(_unifiedPdfCheck, 0, 1);
+        actions.Controls.Add(_overwriteCheck, 1, 1);
+        actions.Controls.Add(_progressBar, 2, 1);
+        actions.SetColumnSpan(_progressBar, 3);
         root.Controls.Add(actions, 0, 3);
 
         _grid.Dock = DockStyle.Fill;
-        _grid.Margin = new Padding(0, 4, 0, 8);
+        _grid.Margin = new Padding(0, 4, 0, 10);
         root.Controls.Add(_grid, 0, 4);
 
         var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, Margin = Padding.Empty };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 176));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
@@ -208,7 +217,7 @@ public sealed class MainForm : Form
         ConfigureButton(_openOutputButton, "Abrir saida");
         ConfigureButton(_exportReportButton, "Exportar");
         ConfigureButton(_checkUpdateButton, "Atualizar");
-        ConfigureButton(_tutorialButton, "Tutorial");
+        ConfigureButton(_tutorialButton, "Visualizar tutorial");
         _openOutputButton.Dock = DockStyle.Fill;
         _exportReportButton.Dock = DockStyle.Fill;
         _checkUpdateButton.Dock = DockStyle.Fill;
