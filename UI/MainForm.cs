@@ -23,6 +23,7 @@ public sealed class MainForm : Form
     private readonly Button _exportReportButton = new();
     private readonly Button _checkUpdateButton = new();
     private readonly Button _tutorialButton = new();
+    private readonly CheckBox _darkThemeCheck = new();
     private readonly CheckBox _overwriteCheck = new();
     private readonly CheckBox _unifiedPdfCheck = new();
     private readonly ComboBox _existingActionCombo = new();
@@ -41,7 +42,9 @@ public sealed class MainForm : Form
     private readonly XmlDocumentClassifier _xmlClassifier = new();
     private readonly PdfMergeService _pdfMergeService = new();
     private readonly AutoUpdateService _autoUpdateService = new();
+    private readonly UserSettingsService _settingsService = new();
     private readonly System.Windows.Forms.Timer _updateTimer = new();
+    private readonly UserSettings _settings;
     private TutorialOverlayForm? _tutorialOverlay;
     private List<ProcessingResult> _lastResults = [];
     private bool _isCheckingForUpdate;
@@ -49,6 +52,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
+        _settings = _settingsService.Load();
         Text = "Conversor XML NF-e para DANFE PDF";
         MinimumSize = new Size(940, 620);
         StartPosition = FormStartPosition.CenterScreen;
@@ -59,6 +63,7 @@ public sealed class MainForm : Form
 
         BuildLayout();
         ConfigureGrid();
+        ApplyTheme();
         ConfigureTrayIcon();
         WireEvents();
         ConfigureAutoUpdate();
@@ -206,8 +211,9 @@ public sealed class MainForm : Form
         _grid.Margin = new Padding(0, 4, 0, 10);
         root.Controls.Add(_grid, 0, 4);
 
-        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, Margin = Padding.Empty };
+        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 6, Margin = Padding.Empty };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 176));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
@@ -215,6 +221,11 @@ public sealed class MainForm : Form
         _summaryLabel.Dock = DockStyle.Fill;
         _summaryLabel.TextAlign = ContentAlignment.MiddleLeft;
         _summaryLabel.ForeColor = Muted;
+        _darkThemeCheck.Text = "Tema escuro";
+        _darkThemeCheck.Checked = _settings.DarkTheme;
+        _darkThemeCheck.Dock = DockStyle.Left;
+        _darkThemeCheck.AutoSize = true;
+        _darkThemeCheck.Margin = new Padding(8, 14, 0, 0);
         ConfigureButton(_openOutputButton, "Abrir saida");
         ConfigureButton(_exportReportButton, "Exportar");
         ConfigureButton(_checkUpdateButton, "Atualizar");
@@ -224,10 +235,11 @@ public sealed class MainForm : Form
         _checkUpdateButton.Dock = DockStyle.Fill;
         _tutorialButton.Dock = DockStyle.Fill;
         footer.Controls.Add(_summaryLabel, 0, 0);
-        footer.Controls.Add(_tutorialButton, 1, 0);
-        footer.Controls.Add(_checkUpdateButton, 2, 0);
-        footer.Controls.Add(_openOutputButton, 3, 0);
-        footer.Controls.Add(_exportReportButton, 4, 0);
+        footer.Controls.Add(_darkThemeCheck, 1, 0);
+        footer.Controls.Add(_tutorialButton, 2, 0);
+        footer.Controls.Add(_checkUpdateButton, 3, 0);
+        footer.Controls.Add(_openOutputButton, 4, 0);
+        footer.Controls.Add(_exportReportButton, 5, 0);
         root.Controls.Add(footer, 0, 5);
     }
 
@@ -264,6 +276,79 @@ public sealed class MainForm : Form
         AddGridColumn("Mensagem / erro", nameof(ProcessingResult.Message), 20);
     }
 
+    private void ApplyTheme()
+    {
+        var theme = AppThemePalette.Create(_settings.DarkTheme);
+        BackColor = theme.PageBack;
+
+        foreach (Control control in Controls)
+            ApplyTheme(control, theme);
+
+        _dropHintLabel.BackColor = theme.PanelBack;
+        _dropHintLabel.ForeColor = theme.Primary;
+
+        _convertButton.BackColor = theme.Primary;
+        _convertButton.ForeColor = Color.White;
+
+        _grid.BackgroundColor = theme.PanelBack;
+        _grid.GridColor = theme.GridLine;
+        _grid.DefaultCellStyle.BackColor = theme.PanelBack;
+        _grid.DefaultCellStyle.ForeColor = theme.Text;
+        _grid.DefaultCellStyle.SelectionBackColor = theme.SelectionBack;
+        _grid.DefaultCellStyle.SelectionForeColor = theme.SelectionText;
+        _grid.AlternatingRowsDefaultCellStyle.BackColor = theme.AlternatingRow;
+        _grid.AlternatingRowsDefaultCellStyle.ForeColor = theme.Text;
+        _grid.ColumnHeadersDefaultCellStyle.BackColor = theme.HeaderBack;
+        _grid.ColumnHeadersDefaultCellStyle.ForeColor = theme.Text;
+        _grid.RowTemplate.DefaultCellStyle.BackColor = theme.PanelBack;
+        _grid.RowTemplate.DefaultCellStyle.ForeColor = theme.Text;
+        _grid.Refresh();
+    }
+
+    private void ApplyTheme(Control control, AppThemePalette theme)
+    {
+        control.BackColor = theme.PageBack;
+        control.ForeColor = theme.Text;
+
+        switch (control)
+        {
+            case Label label:
+                label.BackColor = Color.Transparent;
+                if (label.Text.StartsWith("Conversor XML", StringComparison.OrdinalIgnoreCase))
+                    label.ForeColor = theme.Primary;
+                else if (label.Text.StartsWith("Um sistema", StringComparison.OrdinalIgnoreCase))
+                    label.ForeColor = theme.BrandBlue;
+                else
+                    label.ForeColor = theme.Muted;
+                break;
+            case TextBox textBox:
+                textBox.BackColor = theme.InputBack;
+                textBox.ForeColor = theme.Text;
+                break;
+            case ComboBox comboBox:
+                comboBox.BackColor = theme.InputBack;
+                comboBox.ForeColor = theme.Text;
+                break;
+            case Button button:
+                button.BackColor = theme.ButtonBack;
+                button.ForeColor = theme.Text;
+                button.FlatAppearance.BorderColor = theme.Border;
+                break;
+            case CheckBox checkBox:
+                checkBox.BackColor = theme.PageBack;
+                checkBox.ForeColor = theme.Text;
+                break;
+            case DataGridView:
+                break;
+            case TableLayoutPanel or FlowLayoutPanel or Panel:
+                control.BackColor = theme.PageBack;
+                break;
+        }
+
+        foreach (Control child in control.Controls)
+            ApplyTheme(child, theme);
+    }
+
     private void WireEvents()
     {
         _loadXmlButton.Click += (_, _) => LoadXmlFilesByClick();
@@ -277,6 +362,12 @@ public sealed class MainForm : Form
         _existingActionCombo.SelectedIndexChanged += (_, _) =>
         {
             _overwriteCheck.Checked = _existingActionCombo.SelectedIndex == 2;
+        };
+        _darkThemeCheck.CheckedChanged += (_, _) =>
+        {
+            _settings.DarkTheme = _darkThemeCheck.Checked;
+            _settingsService.Save(_settings);
+            ApplyTheme();
         };
         _convertButton.Click += async (_, _) => await ConvertAsync();
         _tutorialButton.Click += (_, _) => ShowTutorial();
@@ -500,7 +591,7 @@ public sealed class MainForm : Form
             new(_checkUpdateButton, "Atualizacoes", "Use Atualizar para reabrir a janela de update quando quiser verificar se existe uma versao nova.")
         };
 
-        _tutorialOverlay = new TutorialOverlayForm(this, steps);
+        _tutorialOverlay = new TutorialOverlayForm(this, steps, _settings.DarkTheme);
         _tutorialOverlay.FormClosed += (_, _) => _tutorialOverlay = null;
         _tutorialOverlay.Show(this);
     }
@@ -779,6 +870,56 @@ public sealed class MainForm : Form
         catch
         {
         }
+    }
+
+    private sealed record AppThemePalette(
+        Color PageBack,
+        Color PanelBack,
+        Color InputBack,
+        Color ButtonBack,
+        Color HeaderBack,
+        Color AlternatingRow,
+        Color GridLine,
+        Color Primary,
+        Color BrandBlue,
+        Color Text,
+        Color Muted,
+        Color Border,
+        Color SelectionBack,
+        Color SelectionText)
+    {
+        public static AppThemePalette Create(bool darkTheme)
+            => darkTheme
+                ? new AppThemePalette(
+                    Color.FromArgb(15, 23, 42),
+                    Color.FromArgb(17, 24, 39),
+                    Color.FromArgb(31, 41, 55),
+                    Color.FromArgb(30, 41, 59),
+                    Color.FromArgb(30, 41, 59),
+                    Color.FromArgb(24, 33, 48),
+                    Color.FromArgb(71, 85, 105),
+                    Color.FromArgb(147, 197, 253),
+                    Color.FromArgb(96, 165, 250),
+                    Color.FromArgb(226, 232, 240),
+                    Color.FromArgb(148, 163, 184),
+                    Color.FromArgb(71, 85, 105),
+                    Color.FromArgb(37, 99, 235),
+                    Color.White)
+                : new AppThemePalette(
+                    Color.FromArgb(244, 247, 251),
+                    Color.White,
+                    Color.White,
+                    Color.White,
+                    Color.FromArgb(235, 241, 248),
+                    Color.FromArgb(249, 251, 253),
+                    Color.FromArgb(226, 232, 240),
+                    Color.FromArgb(0, 47, 108),
+                    Color.Blue,
+                    Color.FromArgb(15, 23, 42),
+                    Color.FromArgb(82, 95, 122),
+                    Color.FromArgb(199, 207, 219),
+                    Color.FromArgb(219, 234, 254),
+                    Color.FromArgb(15, 23, 42));
     }
 
     protected override void Dispose(bool disposing)

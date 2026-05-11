@@ -3,13 +3,11 @@ namespace ConversorXmlNFeDanfePdf.UI;
 public sealed class TutorialOverlayForm : Form
 {
     private static readonly Color TransparentBack = Color.Fuchsia;
-    private static readonly Color Primary = Color.FromArgb(0, 47, 108);
     private static readonly Color Accent = Color.FromArgb(245, 158, 11);
-    private static readonly Color TextColor = Color.FromArgb(30, 41, 59);
-    private static readonly Color Muted = Color.FromArgb(82, 95, 122);
 
     private readonly Form _owner;
     private readonly IReadOnlyList<TutorialStep> _steps;
+    private readonly bool _darkTheme;
     private readonly Panel _card = new();
     private readonly Label _eyebrow = new();
     private readonly Label _title = new();
@@ -21,10 +19,11 @@ public sealed class TutorialOverlayForm : Form
     private readonly Button _close = new();
     private int _index;
 
-    public TutorialOverlayForm(Form owner, IReadOnlyList<TutorialStep> steps)
+    public TutorialOverlayForm(Form owner, IReadOnlyList<TutorialStep> steps, bool darkTheme)
     {
         _owner = owner;
         _steps = steps;
+        _darkTheme = darkTheme;
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
@@ -88,13 +87,13 @@ public sealed class TutorialOverlayForm : Form
 
         _eyebrow.Dock = DockStyle.Fill;
         _eyebrow.Font = new Font("Segoe UI Semibold", 8F);
-        _eyebrow.ForeColor = Muted;
+        _eyebrow.ForeColor = MutedColor;
         _eyebrow.Text = "TUTORIAL DO FLUXO";
         layout.Controls.Add(_eyebrow, 0, 0);
 
         _title.Dock = DockStyle.Fill;
         _title.Font = new Font("Segoe UI Semibold", 13F);
-        _title.ForeColor = Primary;
+        _title.ForeColor = PrimaryColor;
         layout.Controls.Add(_title, 0, 1);
 
         _body.Dock = DockStyle.Fill;
@@ -104,7 +103,7 @@ public sealed class TutorialOverlayForm : Form
 
         _counter.Dock = DockStyle.Fill;
         _counter.Font = new Font("Segoe UI", 8.5F);
-        _counter.ForeColor = Muted;
+        _counter.ForeColor = MutedColor;
         layout.Controls.Add(_counter, 0, 3);
 
         _progress.Dock = DockStyle.Fill;
@@ -133,14 +132,14 @@ public sealed class TutorialOverlayForm : Form
         layout.Controls.Add(buttons, 0, 5);
     }
 
-    private static void ConfigureButton(Button button, string text, bool primary)
+    private void ConfigureButton(Button button, string text, bool primary)
     {
         button.Text = text;
         button.Width = 96;
         button.Height = 32;
         button.FlatStyle = FlatStyle.Flat;
-        button.FlatAppearance.BorderColor = primary ? Primary : Color.FromArgb(199, 207, 219);
-        button.BackColor = primary ? Primary : Color.White;
+        button.FlatAppearance.BorderColor = primary ? PrimaryColor : BorderColor;
+        button.BackColor = primary ? PrimaryColor : CardBackColor;
         button.ForeColor = primary ? Color.White : TextColor;
         button.Margin = new Padding(8, 5, 0, 5);
         button.Cursor = Cursors.Hand;
@@ -206,7 +205,18 @@ public sealed class TutorialOverlayForm : Form
         var width = Math.Min(440, Math.Max(300, ClientSize.Width - 32));
         var height = Math.Min(250, Math.Max(218, ClientSize.Height - 32));
         _card.Size = new Size(width, height);
+        _card.BackColor = CardBackColor;
     }
+
+    private Color CardBackColor => _darkTheme ? Color.FromArgb(17, 24, 39) : Color.White;
+
+    private Color PrimaryColor => _darkTheme ? Color.FromArgb(147, 197, 253) : Color.FromArgb(0, 47, 108);
+
+    private Color TextColor => _darkTheme ? Color.FromArgb(226, 232, 240) : Color.FromArgb(30, 41, 59);
+
+    private Color MutedColor => _darkTheme ? Color.FromArgb(148, 163, 184) : Color.FromArgb(82, 95, 122);
+
+    private Color BorderColor => _darkTheme ? Color.FromArgb(71, 85, 105) : Color.FromArgb(199, 207, 219);
 
     private Rectangle CurrentTargetBounds()
     {
