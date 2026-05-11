@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using ConversorXmlNFeDanfePdf.Models;
 using ConversorXmlNFeDanfePdf.Services;
 
@@ -20,6 +21,7 @@ public sealed class MainForm : Form
     private readonly Button _convertButton = new();
     private readonly Button _openOutputButton = new();
     private readonly Button _exportReportButton = new();
+    private readonly Button _checkUpdateButton = new();
     private readonly CheckBox _overwriteCheck = new();
     private readonly CheckBox _unifiedPdfCheck = new();
     private readonly ComboBox _existingActionCombo = new();
@@ -45,7 +47,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "Conversor XML NF-e para DANFE PDF";
+        Text = $"Conversor XML NF-e para DANFE PDF v{AppVersionText}";
         MinimumSize = new Size(940, 620);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 9F);
@@ -79,8 +81,9 @@ public sealed class MainForm : Form
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
         Controls.Add(root);
 
-        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = Padding.Empty };
+        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 430));
         var title = new Label
         {
@@ -98,8 +101,17 @@ public sealed class MainForm : Form
             ForeColor = Color.Blue,
             TextAlign = ContentAlignment.MiddleRight
         };
+        var version = new Label
+        {
+            Text = $"v{AppVersionText}",
+            Dock = DockStyle.Fill,
+            Font = new Font("Segoe UI Semibold", 9F),
+            ForeColor = Muted,
+            TextAlign = ContentAlignment.MiddleCenter
+        };
         header.Controls.Add(title, 0, 0);
-        header.Controls.Add(brand, 1, 0);
+        header.Controls.Add(version, 1, 0);
+        header.Controls.Add(brand, 2, 0);
         root.Controls.Add(header, 0, 0);
 
         _dropHintLabel.Text = "Arraste XMLs, pastas ou compactados aqui; ou clique em Carregar arquivos";
@@ -173,8 +185,9 @@ public sealed class MainForm : Form
         _grid.Margin = new Padding(0, 4, 0, 8);
         root.Controls.Add(_grid, 0, 4);
 
-        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
+        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, Margin = Padding.Empty };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         _summaryLabel.Dock = DockStyle.Fill;
@@ -182,11 +195,14 @@ public sealed class MainForm : Form
         _summaryLabel.ForeColor = Muted;
         ConfigureButton(_openOutputButton, "Abrir saida");
         ConfigureButton(_exportReportButton, "Exportar");
+        ConfigureButton(_checkUpdateButton, "Atualizar");
         _openOutputButton.Dock = DockStyle.Fill;
         _exportReportButton.Dock = DockStyle.Fill;
+        _checkUpdateButton.Dock = DockStyle.Fill;
         footer.Controls.Add(_summaryLabel, 0, 0);
-        footer.Controls.Add(_openOutputButton, 1, 0);
-        footer.Controls.Add(_exportReportButton, 2, 0);
+        footer.Controls.Add(_checkUpdateButton, 1, 0);
+        footer.Controls.Add(_openOutputButton, 2, 0);
+        footer.Controls.Add(_exportReportButton, 3, 0);
         root.Controls.Add(footer, 0, 5);
     }
 
@@ -238,6 +254,7 @@ public sealed class MainForm : Form
             _overwriteCheck.Checked = _existingActionCombo.SelectedIndex == 2;
         };
         _convertButton.Click += async (_, _) => await ConvertAsync();
+        _checkUpdateButton.Click += async (_, _) => await CheckForUpdatesAsync(showWhenUpdated: true);
         _openOutputButton.Click += (_, _) => OpenOutputFolder();
         _exportReportButton.Click += (_, _) => ExportReport();
 
@@ -270,7 +287,7 @@ public sealed class MainForm : Form
         Shown += async (_, _) => await CheckForUpdatesAsync();
     }
 
-    private async Task CheckForUpdatesAsync()
+    private async Task CheckForUpdatesAsync(bool showWhenUpdated = false)
     {
         if (_isCheckingForUpdate || _isUpdateWindowOpen)
             return;
@@ -280,7 +297,11 @@ public sealed class MainForm : Form
         {
             var update = await _autoUpdateService.CheckForUpdateAsync();
             if (update?.IsUpdateAvailable != true)
+            {
+                if (showWhenUpdated)
+                    MessageBox.Show($"Voce ja esta usando a versao mais recente: v{AppVersionText}.", "Atualizacao", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
+            }
 
             _isUpdateWindowOpen = true;
             BeginInvoke(new Action(() =>
@@ -304,10 +325,11 @@ public sealed class MainForm : Form
     private void ConfigureTrayIcon()
     {
         _trayMenu.Items.Add("Abrir", null, (_, _) => RestoreFromTray());
+        _trayMenu.Items.Add("Verificar atualizacao", null, async (_, _) => await CheckForUpdatesAsync(showWhenUpdated: true));
         _trayMenu.Items.Add("Sair", null, (_, _) => ExitApplication());
 
         _trayIcon.Icon = Icon ?? LoadAppIcon();
-        _trayIcon.Text = "Conversor XML NF-e para DANFE PDF";
+        _trayIcon.Text = $"Conversor XML NF-e para DANFE PDF v{AppVersionText}";
         _trayIcon.ContextMenuStrip = _trayMenu;
         _trayIcon.Visible = true;
         _trayIcon.DoubleClick += (_, _) => RestoreFromTray();
@@ -496,9 +518,12 @@ public sealed class MainForm : Form
         }
 
         var output = _outputText.Text;
+        var effectiveOutput = _unifiedPdfCheck.Checked
+            ? Path.Combine(Path.GetTempPath(), "ConversorXmlNFeDanfePdf", "UnifiedWork", Guid.NewGuid().ToString("N"))
+            : output;
         var options = new ProcessingOptions
         {
-            OutputFolder = output,
+            OutputFolder = effectiveOutput,
             GenerateUnifiedPdf = _unifiedPdfCheck.Checked,
             ExistingPdfAction = SelectedExistingAction()
         };
@@ -526,6 +551,12 @@ public sealed class MainForm : Form
                 if (generatedPdfs.Count > 0)
                 {
                     unifiedPdfPath = _pdfMergeService.Merge(generatedPdfs, output);
+                    foreach (var item in _lastResults.Where(x => x.Status is "Gerado" or "Sobrescrito"))
+                    {
+                        item.Status = "Unificado";
+                        item.PdfPath = "";
+                        item.Message = "Incluido no PDF unico. PDF individual nao foi salvo.";
+                    }
                     var unifiedResult = new ProcessingResult
                     {
                         XmlFile = "PDF unico",
@@ -536,9 +567,13 @@ public sealed class MainForm : Form
                     _lastResults.Add(unifiedResult);
                     _rows.Add(unifiedResult);
                 }
+
+                TryDeleteFolder(effectiveOutput);
             }
             _reportService.SaveTxtSummary(output, _lastResults);
-            var generated = _lastResults.Count(x => x.Status is "Gerado" or "Sobrescrito");
+            var generated = options.GenerateUnifiedPdf
+                ? _lastResults.Count(x => x.XmlFile == "PDF unico")
+                : _lastResults.Count(x => x.Status is "Gerado" or "Sobrescrito");
             var ignored = _lastResults.Count(x => x.Status == "Ignorado");
             var errors = _lastResults.Count(x => x.Status == "Erro");
             var unifiedInfo = string.IsNullOrWhiteSpace(unifiedPdfPath) ? "" : $" | Unificado: {Path.GetFileName(unifiedPdfPath)}";
@@ -601,6 +636,7 @@ public sealed class MainForm : Form
         _clearButton.Enabled = enabled;
         _outputButton.Enabled = enabled;
         _convertButton.Enabled = enabled;
+        _checkUpdateButton.Enabled = enabled;
         _overwriteCheck.Enabled = enabled;
         _unifiedPdfCheck.Enabled = enabled;
         _existingActionCombo.Enabled = enabled;
@@ -667,6 +703,27 @@ public sealed class MainForm : Form
     {
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "barcode-scanner.ico");
         return File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
+    }
+
+    private static string AppVersionText
+    {
+        get
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0);
+            return $"{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
+        }
+    }
+
+    private static void TryDeleteFolder(string folder)
+    {
+        try
+        {
+            if (Directory.Exists(folder))
+                Directory.Delete(folder, recursive: true);
+        }
+        catch
+        {
+        }
     }
 
     protected override void Dispose(bool disposing)
