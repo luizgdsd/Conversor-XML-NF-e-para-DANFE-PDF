@@ -9,6 +9,7 @@ internal static class Program
     private static void Main()
     {
         QuestPDF.Settings.License = LicenseType.Community;
+        Services.AutoUpdateService.CleanupUpdateArtifacts();
         ApplicationConfiguration.Initialize();
         Application.Run(new MainForm());
     }

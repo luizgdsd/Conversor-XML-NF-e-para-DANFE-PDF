@@ -45,6 +45,7 @@ public sealed class AutoUpdateService
     public async Task<string> DownloadInstallerAsync(UpdateInfo update, IProgress<int>? progress, CancellationToken cancellationToken = default)
     {
         var downloadFolder = Path.Combine(Path.GetTempPath(), "ConversorXmlNFeDanfePdf", "Updates");
+        SafeDeleteDirectory(downloadFolder);
         Directory.CreateDirectory(downloadFolder);
         var fileName = string.IsNullOrWhiteSpace(update.AssetName)
             ? "Instalador_Conversor_XML_NFe_DANFE_PDF.exe"
@@ -81,6 +82,52 @@ public sealed class AutoUpdateService
             Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
             UseShellExecute = true
         });
+    }
+
+    public static void CleanupUpdateArtifacts()
+    {
+        var appTemp = Path.Combine(Path.GetTempPath(), "ConversorXmlNFeDanfePdf");
+        var updates = Path.Combine(appTemp, "Updates");
+        var unifiedWork = Path.Combine(appTemp, "UnifiedWork");
+
+        SafeDeleteDirectory(updates);
+        SafeDeleteDirectory(unifiedWork);
+        DeleteOldExtractionFolders(appTemp);
+    }
+
+    private static void DeleteOldExtractionFolders(string appTemp)
+    {
+        if (!Directory.Exists(appTemp))
+            return;
+
+        foreach (var directory in Directory.EnumerateDirectories(appTemp))
+        {
+            var name = Path.GetFileName(directory);
+            if (name is "Updates" or "UnifiedWork")
+                continue;
+
+            try
+            {
+                var info = new DirectoryInfo(directory);
+                if (info.CreationTimeUtc < DateTime.UtcNow.AddHours(-6))
+                    info.Delete(recursive: true);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private static void SafeDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path, recursive: true);
+        }
+        catch
+        {
+        }
     }
 
     private static (string Name, string DownloadUrl) FindInstallerAsset(JsonElement root)
