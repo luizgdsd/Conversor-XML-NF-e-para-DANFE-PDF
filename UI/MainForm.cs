@@ -346,7 +346,7 @@ public sealed class MainForm : Form
             ToolTipIcon.Info);
     }
 
-    private void RestoreFromTray()
+    public void RestoreFromTray()
     {
         ShowInTaskbar = true;
         Show();

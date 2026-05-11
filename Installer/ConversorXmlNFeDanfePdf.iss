@@ -1,5 +1,5 @@
 #define MyAppName "Conversor XML NF-e para DANFE PDF"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "Gugu Solucoes"
 #define MyAppExeName "Conversor XML NF-e para DANFE PDF.exe"
 
