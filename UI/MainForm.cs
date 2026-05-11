@@ -35,6 +35,7 @@ public sealed class MainForm : Form
     private readonly NFeBatchProcessor _processor = new();
     private readonly ProcessingReportService _reportService = new();
     private readonly ArchiveXmlExtractorService _archiveExtractor = new();
+    private readonly XmlDocumentClassifier _xmlClassifier = new();
     private readonly PdfMergeService _pdfMergeService = new();
     private readonly AutoUpdateService _autoUpdateService = new();
     private readonly System.Windows.Forms.Timer _updateTimer = new();
@@ -431,12 +432,26 @@ public sealed class MainForm : Form
     private void AddXmlFiles(IEnumerable<string> files)
     {
         var added = 0;
+        var ignored = 0;
         foreach (var file in files.Select(Path.GetFullPath).Where(File.Exists))
         {
             if (!file.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                 continue;
             if (_xmlFiles.Contains(file, StringComparer.OrdinalIgnoreCase))
                 continue;
+
+            var classification = _xmlClassifier.Classify(file);
+            if (!classification.CanGenerateDanfe)
+            {
+                _rows.Add(new ProcessingResult
+                {
+                    XmlFile = file,
+                    Status = "Ignorado",
+                    Message = classification.Message
+                });
+                ignored++;
+                continue;
+            }
 
             _xmlFiles.Add(file);
             _rows.Add(new ProcessingResult
@@ -448,7 +463,12 @@ public sealed class MainForm : Form
             added++;
         }
 
-        UpdateSummary(added == 0 ? "Nenhum XML novo foi carregado." : $"{added} XML(s) carregado(s).");
+        var prefix = added == 0
+            ? "Nenhuma NF-e nova foi carregada."
+            : $"{added} NF-e(s) carregada(s).";
+        if (ignored > 0)
+            prefix += $" {ignored} XML(s) ignorado(s).";
+        UpdateSummary(prefix);
     }
 
     private void ClearLoadedFiles()
