@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="NFe35260512345678000190550010000001234567890123" versao="4.00">
+      <ide>
+        <cUF>35</cUF>
+        <natOp>Venda de mercadoria</natOp>
+        <mod>55</mod>
+        <serie>1</serie>
+        <nNF>123</nNF>
+        <dhEmi>2026-05-07T10:30:00-03:00</dhEmi>
+      </ide>
+      <emit>
+        <CNPJ>12345678000190</CNPJ>
+        <xNome>Empresa Exemplo LTDA</xNome>
+        <enderEmit>
+          <xLgr>Rua Central</xLgr>
+          <nro>100</nro>
+          <xBairro>Centro</xBairro>
+          <xMun>Sao Paulo</xMun>
+          <UF>SP</UF>
+          <CEP>01001000</CEP>
+        </enderEmit>
+        <IE>123456789</IE>
+      </emit>
+      <dest>
+        <CPF>12345678909</CPF>
+        <xNome>Cliente Exemplo</xNome>
+        <enderDest>
+          <xLgr>Avenida Brasil</xLgr>
+          <nro>500</nro>
+          <xBairro>Jardim</xBairro>
+          <xMun>Campinas</xMun>
+          <UF>SP</UF>
+          <CEP>13000000</CEP>
+        </enderDest>
+      </dest>
+      <det nItem="1">
+        <prod>
+          <cProd>001</cProd>
+          <xProd>Produto de teste</xProd>
+          <NCM>12345678</NCM>
+          <CFOP>5102</CFOP>
+          <uCom>UN</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>25.00</vUnCom>
+          <vProd>50.00</vProd>
+        </prod>
+      </det>
+      <total>
+        <ICMSTot>
+          <vProd>50.00</vProd>
+          <vTotTrib>8.50</vTotTrib>
+          <vNF>50.00</vNF>
+        </ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+  <protNFe>
+    <infProt>
+      <nProt>135260000000001</nProt>
+    </infProt>
+  </protNFe>
+</nfeProc>
