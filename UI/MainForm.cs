@@ -784,6 +784,7 @@ public sealed class MainForm : Form
     {
         if (disposing)
         {
+            _tutorialOverlay?.Close();
             _trayIcon.Dispose();
             _trayMenu.Dispose();
             _updateTimer.Dispose();

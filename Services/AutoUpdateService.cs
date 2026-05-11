@@ -79,7 +79,7 @@ public sealed class AutoUpdateService
         Process.Start(new ProcessStartInfo
         {
             FileName = installerPath,
-            Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
+            Arguments = "/SILENT /CLOSEAPPLICATIONS /NORESTARTAPPLICATIONS /SUPPRESSMSGBOXES",
             UseShellExecute = true
         });
     }
