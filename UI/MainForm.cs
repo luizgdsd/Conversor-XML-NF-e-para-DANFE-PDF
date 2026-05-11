@@ -72,11 +72,11 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 6,
-            Padding = new Padding(22, 18, 22, 16),
+            Padding = new Padding(22, 14, 22, 16),
             BackColor = PageBack
         };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 76));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 74));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -85,24 +85,32 @@ public sealed class MainForm : Form
 
         var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = Padding.Empty };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 470));
-        var title = new Label
-        {
-            Text = "Conversor XML NF-e para DANFE PDF",
-            Dock = DockStyle.Fill,
-            Font = new Font("Segoe UI Semibold", 16F),
-            ForeColor = Primary,
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-        var brandPanel = new TableLayoutPanel
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 460));
+        var titlePanel = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             RowCount = 2,
             ColumnCount = 1,
             Margin = Padding.Empty
         };
-        brandPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        brandPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+        titlePanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+        var title = new Label
+        {
+            Text = "Conversor XML NF-e para DANFE PDF",
+            Dock = DockStyle.Fill,
+            Font = new Font("Segoe UI Semibold", 14F),
+            ForeColor = Primary,
+            TextAlign = ContentAlignment.BottomLeft
+        };
+        var versionBadge = new Label
+        {
+            Text = $"Versao {AppVersionText}",
+            Dock = DockStyle.Fill,
+            Font = new Font("Segoe UI", 8.5F),
+            ForeColor = Muted,
+            TextAlign = ContentAlignment.TopLeft
+        };
         var brand = new Label
         {
             Text = "Um sistema desenvolvido por Gugu Soluções",
@@ -111,18 +119,10 @@ public sealed class MainForm : Form
             ForeColor = Color.Blue,
             TextAlign = ContentAlignment.MiddleRight
         };
-        var version = new Label
-        {
-            Text = $"Versao {AppVersionText}",
-            Dock = DockStyle.Fill,
-            Font = new Font("Segoe UI", 8F, FontStyle.Regular),
-            ForeColor = Muted,
-            TextAlign = ContentAlignment.MiddleRight
-        };
-        brandPanel.Controls.Add(brand, 0, 0);
-        brandPanel.Controls.Add(version, 0, 1);
-        header.Controls.Add(title, 0, 0);
-        header.Controls.Add(brandPanel, 1, 0);
+        titlePanel.Controls.Add(title, 0, 0);
+        titlePanel.Controls.Add(versionBadge, 0, 1);
+        header.Controls.Add(titlePanel, 0, 0);
+        header.Controls.Add(brand, 1, 0);
         root.Controls.Add(header, 0, 0);
 
         _dropHintLabel.Text = "Arraste XMLs, pastas ou compactados aqui; ou clique em Carregar arquivos";
