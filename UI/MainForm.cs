@@ -22,6 +22,7 @@ public sealed class MainForm : Form
     private readonly Button _openOutputButton = new();
     private readonly Button _exportReportButton = new();
     private readonly Button _checkUpdateButton = new();
+    private readonly Button _tutorialButton = new();
     private readonly CheckBox _overwriteCheck = new();
     private readonly CheckBox _unifiedPdfCheck = new();
     private readonly ComboBox _existingActionCombo = new();
@@ -41,6 +42,7 @@ public sealed class MainForm : Form
     private readonly PdfMergeService _pdfMergeService = new();
     private readonly AutoUpdateService _autoUpdateService = new();
     private readonly System.Windows.Forms.Timer _updateTimer = new();
+    private TutorialOverlayForm? _tutorialOverlay;
     private List<ProcessingResult> _lastResults = [];
     private bool _isCheckingForUpdate;
     private bool _isUpdateWindowOpen;
@@ -81,9 +83,8 @@ public sealed class MainForm : Form
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
         Controls.Add(root);
 
-        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, Margin = Padding.Empty };
+        var header = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Margin = Padding.Empty };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 430));
         var title = new Label
         {
@@ -93,6 +94,15 @@ public sealed class MainForm : Form
             ForeColor = Primary,
             TextAlign = ContentAlignment.MiddleLeft
         };
+        var brandPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 2,
+            ColumnCount = 1,
+            Margin = Padding.Empty
+        };
+        brandPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        brandPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
         var brand = new Label
         {
             Text = "Um sistema desenvolvido por Gugu Soluções",
@@ -105,13 +115,14 @@ public sealed class MainForm : Form
         {
             Text = $"v{AppVersionText}",
             Dock = DockStyle.Fill,
-            Font = new Font("Segoe UI Semibold", 9F),
+            Font = new Font("Segoe UI", 8F),
             ForeColor = Muted,
-            TextAlign = ContentAlignment.MiddleCenter
+            TextAlign = ContentAlignment.MiddleRight
         };
+        brandPanel.Controls.Add(brand, 0, 0);
+        brandPanel.Controls.Add(version, 0, 1);
         header.Controls.Add(title, 0, 0);
-        header.Controls.Add(version, 1, 0);
-        header.Controls.Add(brand, 2, 0);
+        header.Controls.Add(brandPanel, 1, 0);
         root.Controls.Add(header, 0, 0);
 
         _dropHintLabel.Text = "Arraste XMLs, pastas ou compactados aqui; ou clique em Carregar arquivos";
@@ -185,8 +196,9 @@ public sealed class MainForm : Form
         _grid.Margin = new Padding(0, 4, 0, 8);
         root.Controls.Add(_grid, 0, 4);
 
-        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, Margin = Padding.Empty };
+        var footer = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, Margin = Padding.Empty };
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
         footer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 138));
@@ -196,13 +208,16 @@ public sealed class MainForm : Form
         ConfigureButton(_openOutputButton, "Abrir saida");
         ConfigureButton(_exportReportButton, "Exportar");
         ConfigureButton(_checkUpdateButton, "Atualizar");
+        ConfigureButton(_tutorialButton, "Tutorial");
         _openOutputButton.Dock = DockStyle.Fill;
         _exportReportButton.Dock = DockStyle.Fill;
         _checkUpdateButton.Dock = DockStyle.Fill;
+        _tutorialButton.Dock = DockStyle.Fill;
         footer.Controls.Add(_summaryLabel, 0, 0);
-        footer.Controls.Add(_checkUpdateButton, 1, 0);
-        footer.Controls.Add(_openOutputButton, 2, 0);
-        footer.Controls.Add(_exportReportButton, 3, 0);
+        footer.Controls.Add(_tutorialButton, 1, 0);
+        footer.Controls.Add(_checkUpdateButton, 2, 0);
+        footer.Controls.Add(_openOutputButton, 3, 0);
+        footer.Controls.Add(_exportReportButton, 4, 0);
         root.Controls.Add(footer, 0, 5);
     }
 
@@ -254,6 +269,7 @@ public sealed class MainForm : Form
             _overwriteCheck.Checked = _existingActionCombo.SelectedIndex == 2;
         };
         _convertButton.Click += async (_, _) => await ConvertAsync();
+        _tutorialButton.Click += (_, _) => ShowTutorial();
         _checkUpdateButton.Click += async (_, _) => await CheckForUpdatesAsync(showWhenUpdated: true);
         _openOutputButton.Click += (_, _) => OpenOutputFolder();
         _exportReportButton.Click += (_, _) => ExportReport();
@@ -268,7 +284,9 @@ public sealed class MainForm : Form
         {
             if (WindowState == FormWindowState.Minimized)
                 HideToTray();
+            _tutorialOverlay?.RefreshPosition();
         };
+        Move += (_, _) => _tutorialOverlay?.RefreshPosition();
         FormClosing += (_, e) =>
         {
             if (e.CloseReason == CloseReason.UserClosing && _trayIcon.Visible)
@@ -449,6 +467,32 @@ public sealed class MainForm : Form
     private void AddInputPaths(IEnumerable<string> paths)
     {
         AddXmlFiles(ExpandInputPaths(paths));
+    }
+
+    private void ShowTutorial()
+    {
+        if (_tutorialOverlay is { IsDisposed: false })
+        {
+            _tutorialOverlay.RefreshPosition();
+            _tutorialOverlay.Activate();
+            return;
+        }
+
+        var steps = new List<TutorialStep>
+        {
+            new(_dropHintLabel, "Carregue os arquivos", "Arraste XMLs, pastas ou arquivos compactados para esta area. Voce tambem pode usar o botao Carregar arquivos."),
+            new(_loadXmlButton, "Selecione manualmente", "Use este botao quando preferir escolher XMLs ou compactados pela janela de arquivos do Windows."),
+            new(_outputText, "Escolha a pasta de saida", "Informe onde os PDFs serao salvos. O botao Selecionar abre o seletor de pastas."),
+            new(_existingActionCombo, "Defina conflitos", "Escolha o que fazer quando um PDF com o mesmo nome ja existir: gerar sufixo, ignorar ou sobrescrever."),
+            new(_unifiedPdfCheck, "PDF unico", "Marque esta opcao quando quiser receber apenas um arquivo PDF consolidado com todos os DANFEs."),
+            new(_convertButton, "Converta", "Clique em Converter XMLs para iniciar o lote. A barra mostra o progresso."),
+            new(_grid, "Acompanhe o resultado", "A grade mostra chave, numero, emitente, destinatario, status e mensagens de erro ou aviso."),
+            new(_checkUpdateButton, "Atualizacoes", "Use Atualizar para reabrir a janela de update quando quiser verificar se existe uma versao nova.")
+        };
+
+        _tutorialOverlay = new TutorialOverlayForm(this, steps);
+        _tutorialOverlay.FormClosed += (_, _) => _tutorialOverlay = null;
+        _tutorialOverlay.Show(this);
     }
 
     private void AddXmlFiles(IEnumerable<string> files)
@@ -636,6 +680,7 @@ public sealed class MainForm : Form
         _clearButton.Enabled = enabled;
         _outputButton.Enabled = enabled;
         _convertButton.Enabled = enabled;
+        _tutorialButton.Enabled = enabled;
         _checkUpdateButton.Enabled = enabled;
         _overwriteCheck.Enabled = enabled;
         _unifiedPdfCheck.Enabled = enabled;
