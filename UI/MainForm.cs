@@ -891,19 +891,19 @@ public sealed class MainForm : Form
         public static AppThemePalette Create(bool darkTheme)
             => darkTheme
                 ? new AppThemePalette(
-                    Color.FromArgb(15, 23, 42),
-                    Color.FromArgb(17, 24, 39),
-                    Color.FromArgb(31, 41, 55),
-                    Color.FromArgb(30, 41, 59),
-                    Color.FromArgb(30, 41, 59),
-                    Color.FromArgb(24, 33, 48),
-                    Color.FromArgb(71, 85, 105),
-                    Color.FromArgb(147, 197, 253),
-                    Color.FromArgb(96, 165, 250),
-                    Color.FromArgb(226, 232, 240),
-                    Color.FromArgb(148, 163, 184),
-                    Color.FromArgb(71, 85, 105),
+                    Color.Black,
+                    Color.FromArgb(5, 5, 5),
+                    Color.FromArgb(16, 16, 16),
+                    Color.FromArgb(20, 20, 20),
+                    Color.FromArgb(24, 24, 24),
+                    Color.FromArgb(10, 10, 10),
+                    Color.FromArgb(82, 82, 82),
                     Color.FromArgb(37, 99, 235),
+                    Color.FromArgb(59, 130, 246),
+                    Color.FromArgb(245, 247, 250),
+                    Color.FromArgb(203, 213, 225),
+                    Color.FromArgb(96, 96, 96),
+                    Color.FromArgb(30, 64, 175),
                     Color.White)
                 : new AppThemePalette(
                     Color.FromArgb(244, 247, 251),

@@ -208,15 +208,15 @@ public sealed class TutorialOverlayForm : Form
         _card.BackColor = CardBackColor;
     }
 
-    private Color CardBackColor => _darkTheme ? Color.FromArgb(17, 24, 39) : Color.White;
+    private Color CardBackColor => _darkTheme ? Color.FromArgb(5, 5, 5) : Color.White;
 
-    private Color PrimaryColor => _darkTheme ? Color.FromArgb(147, 197, 253) : Color.FromArgb(0, 47, 108);
+    private Color PrimaryColor => _darkTheme ? Color.FromArgb(59, 130, 246) : Color.FromArgb(0, 47, 108);
 
-    private Color TextColor => _darkTheme ? Color.FromArgb(226, 232, 240) : Color.FromArgb(30, 41, 59);
+    private Color TextColor => _darkTheme ? Color.FromArgb(245, 247, 250) : Color.FromArgb(30, 41, 59);
 
-    private Color MutedColor => _darkTheme ? Color.FromArgb(148, 163, 184) : Color.FromArgb(82, 95, 122);
+    private Color MutedColor => _darkTheme ? Color.FromArgb(203, 213, 225) : Color.FromArgb(82, 95, 122);
 
-    private Color BorderColor => _darkTheme ? Color.FromArgb(71, 85, 105) : Color.FromArgb(199, 207, 219);
+    private Color BorderColor => _darkTheme ? Color.FromArgb(96, 96, 96) : Color.FromArgb(199, 207, 219);
 
     private Rectangle CurrentTargetBounds()
     {
