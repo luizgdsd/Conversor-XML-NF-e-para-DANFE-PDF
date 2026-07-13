@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
   <NFe>
-    <infNFe Id="NFe35260512345678000190550010000001234567890123" versao="4.00">
+    <infNFe Id="NFe00000000000000000000000000000000000000000000" versao="4.00">
       <ide>
         <cUF>35</cUF>
         <natOp>Venda de mercadoria</natOp>
@@ -11,7 +11,7 @@
         <dhEmi>2026-05-07T10:30:00-03:00</dhEmi>
       </ide>
       <emit>
-        <CNPJ>12345678000190</CNPJ>
+        <CNPJ>00000000000000</CNPJ>
         <xNome>Empresa Exemplo LTDA</xNome>
         <enderEmit>
           <xLgr>Rua Central</xLgr>
@@ -21,10 +21,10 @@
           <UF>SP</UF>
           <CEP>01001000</CEP>
         </enderEmit>
-        <IE>123456789</IE>
+        <IE>000000000</IE>
       </emit>
       <dest>
-        <CPF>12345678909</CPF>
+        <CPF>00000000000</CPF>
         <xNome>Cliente Exemplo</xNome>
         <enderDest>
           <xLgr>Avenida Brasil</xLgr>
@@ -58,7 +58,7 @@
   </NFe>
   <protNFe>
     <infProt>
-      <nProt>135260000000001</nProt>
+      <nProt>000000000000000</nProt>
     </infProt>
   </protNFe>
 </nfeProc>

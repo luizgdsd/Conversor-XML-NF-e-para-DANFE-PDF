@@ -2,6 +2,7 @@ bin/
 obj/
 dist/
 pdf/
+artifacts/
 __pycache__/
 *.user
 *.suo
