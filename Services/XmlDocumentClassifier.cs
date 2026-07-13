@@ -14,6 +14,7 @@ public enum FiscalXmlKind
 
 public sealed record FiscalXmlClassification(FiscalXmlKind Kind, string Message)
 {
+    public bool CanGeneratePdf => Kind is FiscalXmlKind.NFe or FiscalXmlKind.NFSe;
     public bool CanGenerateDanfe => Kind == FiscalXmlKind.NFe;
 }
 
@@ -32,8 +33,8 @@ public sealed class XmlDocumentClassifier
             if (names.Contains("infNFe"))
                 return new FiscalXmlClassification(FiscalXmlKind.NFe, "NF-e valida para DANFE.");
 
-            if (names.Contains("NFSe") || names.Contains("infNFSe") || names.Contains("CompNfse") || names.Contains("ConsultarNfseServicoPrestadoResposta"))
-                return new FiscalXmlClassification(FiscalXmlKind.NFSe, "XML de NFS-e detectado. DANFE nao se aplica a Nota Fiscal de Servico.");
+            if (names.Contains("NFSe") || names.Contains("Nfse") || names.Contains("InfNfse") || names.Contains("infNFSe") || names.Contains("CompNfse") || names.Contains("ConsultarNfseServicoPrestadoResposta"))
+                return new FiscalXmlClassification(FiscalXmlKind.NFSe, "NFS-e valida para PDF.");
 
             if (names.Contains("infCte"))
                 return new FiscalXmlClassification(FiscalXmlKind.CTe, "XML de CT-e detectado. Este sistema gera DANFE apenas para NF-e.");

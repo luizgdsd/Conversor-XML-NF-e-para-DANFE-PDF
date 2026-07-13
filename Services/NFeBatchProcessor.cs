@@ -7,7 +7,10 @@ public sealed class NFeBatchProcessor
 {
     private readonly FileScannerService _scanner = new();
     private readonly XmlNFeParser _parser = new();
+    private readonly XmlNFSeParser _nfseParser = new();
     private readonly DanfePdfGenerator _pdfGenerator = new();
+    private readonly NFSePdfGenerator _nfsePdfGenerator = new();
+    private readonly XmlDocumentClassifier _classifier = new();
 
     public async Task<IReadOnlyList<ProcessingResult>> ProcessAsync(
         ProcessingOptions options,
@@ -56,25 +59,11 @@ public sealed class NFeBatchProcessor
         try
         {
             WaitUntilFileIsReady(xmlPath);
-            var nfe = _parser.Parse(xmlPath);
-            result.Key = nfe.ChaveAcesso;
-            result.Number = nfe.Numero;
-            result.Issuer = nfe.Emitente.RazaoSocial;
-            result.Recipient = nfe.Destinatario.RazaoSocial;
-
-            var existedBefore = false;
-            var pdfPath = ResolveOutputPath(options.OutputFolder, nfe, options.ExistingPdfAction, out existedBefore);
-            if (pdfPath is null)
-            {
-                result.Status = "Ignorado";
-                result.Message = "PDF ja existente e a configuracao atual manda ignorar.";
-                return result;
-            }
-
-            _pdfGenerator.Generate(nfe, pdfPath);
-            result.PdfPath = pdfPath;
-            result.Status = existedBefore && options.ExistingPdfAction == ExistingPdfAction.Overwrite ? "Sobrescrito" : "Gerado";
-            result.Message = "Convertido com sucesso.";
+            var classification = _classifier.Classify(xmlPath);
+            if (classification.Kind == FiscalXmlKind.NFSe)
+                ProcessNFSe(xmlPath, options, result);
+            else
+                ProcessNFe(xmlPath, options, result);
         }
         catch (Exception ex)
         {
@@ -83,6 +72,57 @@ public sealed class NFeBatchProcessor
         }
 
         return result;
+    }
+
+    private void ProcessNFe(string xmlPath, ProcessingOptions options, ProcessingResult result)
+    {
+        var nfe = _parser.Parse(xmlPath);
+        result.Key = nfe.ChaveAcesso;
+        result.Number = nfe.Numero;
+        result.Issuer = nfe.Emitente.RazaoSocial;
+        result.Recipient = nfe.Destinatario.RazaoSocial;
+
+        var pdfPath = ResolveOutputPath(options.OutputFolder, nfe, options.ExistingPdfAction, out var existedBefore);
+        if (pdfPath is null)
+        {
+            MarkIgnoredExisting(result);
+            return;
+        }
+
+        _pdfGenerator.Generate(nfe, pdfPath);
+        MarkGenerated(result, pdfPath, existedBefore, options.ExistingPdfAction, "NF-e convertida com sucesso.");
+    }
+
+    private void ProcessNFSe(string xmlPath, ProcessingOptions options, ProcessingResult result)
+    {
+        var nfse = _nfseParser.Parse(xmlPath);
+        result.Key = string.IsNullOrWhiteSpace(nfse.CodigoVerificacao) ? "NFS-e" : nfse.CodigoVerificacao;
+        result.Number = nfse.Numero;
+        result.Issuer = nfse.Prestador.RazaoSocial;
+        result.Recipient = nfse.Tomador.RazaoSocial;
+
+        var pdfPath = ResolveOutputPath(options.OutputFolder, nfse, options.ExistingPdfAction, out var existedBefore);
+        if (pdfPath is null)
+        {
+            MarkIgnoredExisting(result);
+            return;
+        }
+
+        _nfsePdfGenerator.Generate(nfse, pdfPath);
+        MarkGenerated(result, pdfPath, existedBefore, options.ExistingPdfAction, "NFS-e convertida com sucesso.");
+    }
+
+    private static void MarkIgnoredExisting(ProcessingResult result)
+    {
+        result.Status = "Ignorado";
+        result.Message = "PDF ja existente e a configuracao atual manda ignorar.";
+    }
+
+    private static void MarkGenerated(ProcessingResult result, string pdfPath, bool existedBefore, ExistingPdfAction action, string message)
+    {
+        result.PdfPath = pdfPath;
+        result.Status = existedBefore && action == ExistingPdfAction.Overwrite ? "Sobrescrito" : "Gerado";
+        result.Message = message;
     }
 
     private static void WaitUntilFileIsReady(string path)
@@ -111,6 +151,28 @@ public sealed class NFeBatchProcessor
         var baseName = !string.IsNullOrWhiteSpace(nfe.ChaveAcesso)
             ? $"{nfe.ChaveAcesso}_DANFE"
             : $"NF_{nfe.Numero}_{nfe.Serie}_{nfe.Emitente.Cnpj}";
+        baseName = Formatadores.ArquivoSeguro(baseName);
+        var path = Path.Combine(outputFolder, baseName + ".pdf");
+        existedBefore = File.Exists(path);
+
+        if (!existedBefore)
+            return path;
+
+        return action switch
+        {
+            ExistingPdfAction.Ignore => null,
+            ExistingPdfAction.Overwrite => path,
+            ExistingPdfAction.IncrementSuffix => Increment(path),
+            _ => path
+        };
+    }
+
+    private static string? ResolveOutputPath(string outputFolder, NFSeData nfse, ExistingPdfAction action, out bool existedBefore)
+    {
+        var document = !string.IsNullOrWhiteSpace(nfse.CodigoVerificacao)
+            ? nfse.CodigoVerificacao
+            : nfse.Prestador.Documento;
+        var baseName = $"NFSE_{nfse.Numero}_{document}";
         baseName = Formatadores.ArquivoSeguro(baseName);
         var path = Path.Combine(outputFolder, baseName + ".pdf");
         existedBefore = File.Exists(path);

@@ -608,7 +608,7 @@ public sealed class MainForm : Form
                 continue;
 
             var classification = _xmlClassifier.Classify(file);
-            if (!classification.CanGenerateDanfe)
+            if (!classification.CanGeneratePdf)
             {
                 _rows.Add(new ProcessingResult
                 {
@@ -631,8 +631,8 @@ public sealed class MainForm : Form
         }
 
         var prefix = added == 0
-            ? "Nenhuma NF-e nova foi carregada."
-            : $"{added} NF-e(s) carregada(s).";
+            ? "Nenhum XML fiscal novo foi carregado."
+            : $"{added} XML(s) fiscal(is) carregado(s).";
         if (ignored > 0)
             prefix += $" {ignored} XML(s) ignorado(s).";
         UpdateSummary(prefix);
